@@ -1,0 +1,153 @@
+metadata:
+  name: image-compression
+  description: Kodak JPEG and WebP size-quality-time experiment
+  version: 0.1.0
+scripts:
+  main: code/src/experiment.py
+environment:
+  compression-env:
+    venv: code/requirements.txt
+reproducibility:
+  random_seed: 42
+data:
+  inputs:
+    kodim01:
+      path: input/kodim01.png
+      mode: stream
+    kodim02:
+      path: input/kodim02.png
+      mode: stream
+    kodim03:
+      path: input/kodim03.png
+      mode: stream
+    kodim04:
+      path: input/kodim04.png
+      mode: stream
+    kodim05:
+      path: input/kodim05.png
+      mode: stream
+    kodim06:
+      path: input/kodim06.png
+      mode: stream
+    kodim07:
+      path: input/kodim07.png
+      mode: stream
+    kodim08:
+      path: input/kodim08.png
+      mode: stream
+    kodim09:
+      path: input/kodim09.png
+      mode: stream
+    kodim10:
+      path: input/kodim10.png
+      mode: stream
+    kodim11:
+      path: input/kodim11.png
+      mode: stream
+    kodim12:
+      path: input/kodim12.png
+      mode: stream
+    kodim13:
+      path: input/kodim13.png
+      mode: stream
+    kodim14:
+      path: input/kodim14.png
+      mode: stream
+    kodim15:
+      path: input/kodim15.png
+      mode: stream
+    kodim16:
+      path: input/kodim16.png
+      mode: stream
+    kodim17:
+      path: input/kodim17.png
+      mode: stream
+    kodim18:
+      path: input/kodim18.png
+      mode: stream
+    kodim19:
+      path: input/kodim19.png
+      mode: stream
+    kodim20:
+      path: input/kodim20.png
+      mode: stream
+    kodim21:
+      path: input/kodim21.png
+      mode: stream
+    kodim22:
+      path: input/kodim22.png
+      mode: stream
+    kodim23:
+      path: input/kodim23.png
+      mode: stream
+    kodim24:
+      path: input/kodim24.png
+      mode: stream
+experiment:
+  pipeline:
+    process_adjlist: 'jpeg_q30 compression_report
+
+      jpeg_q60 compression_report
+
+      jpeg_q90 compression_report
+
+      webp_q30 compression_report
+
+      webp_q60 compression_report
+
+      webp_q90 compression_report'
+    processes:
+    - name: jpeg_q30
+      code: main.benchmark
+      environment: compression-env
+      parameters:
+        codec: JPEG
+        quality: 30
+        repeats: 5
+    - name: jpeg_q60
+      code: main.benchmark
+      environment: compression-env
+      parameters:
+        codec: JPEG
+        quality: 60
+        repeats: 5
+    - name: jpeg_q90
+      code: main.benchmark
+      environment: compression-env
+      parameters:
+        codec: JPEG
+        quality: 90
+        repeats: 5
+    - name: webp_q30
+      code: main.benchmark
+      environment: compression-env
+      parameters:
+        codec: WEBP
+        quality: 30
+        repeats: 5
+    - name: webp_q60
+      code: main.benchmark
+      environment: compression-env
+      parameters:
+        codec: WEBP
+        quality: 60
+        repeats: 5
+    - name: webp_q90
+      code: main.benchmark
+      environment: compression-env
+      parameters:
+        codec: WEBP
+        quality: 90
+        repeats: 5
+    - name: compression_report
+      code: main.compression_report
+      environment: compression-env
+      type: chart
+      chart_type: static
+      probe_paths:
+        jpeg_q30: //process[@name='jpeg_q30']
+        jpeg_q60: //process[@name='jpeg_q60']
+        jpeg_q90: //process[@name='jpeg_q90']
+        webp_q30: //process[@name='webp_q30']
+        webp_q60: //process[@name='webp_q60']
+        webp_q90: //process[@name='webp_q90']

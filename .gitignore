@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.image-compression/
+.expops-sources/
+.expops-configs/
+data/*.png
+data/manifest.json
+expops.env
+output/
+*.log

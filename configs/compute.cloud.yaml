@@ -1,0 +1,37 @@
+provider: local
+num_workers: 3
+deployment:
+  variables:
+    OPENBLAS_NUM_THREADS: '1'
+    OMP_NUM_THREADS: '1'
+options:
+  cleanup: on_success
+  startup_timeout_sec: 180
+  local_cluster_kwargs:
+    memory_limit: 0
+storage:
+  metadata:
+    type: firestore
+    gcp_project: exp-ops
+  mounts:
+    code:
+      type: local
+      source: ..
+      read_only: true
+    input:
+      type: gcs
+      bucket: exp-ops-image-compression-inputs
+      prefix: kodak
+      gcp_project: exp-ops
+    cache:
+      type: s3
+      bucket: expops-test-bucket-755933694771-ap-southeast-1-an
+      prefix: image-compression/cache
+      region: ap-southeast-1
+      profile: expops
+    artefact:
+      type: s3
+      bucket: expops-test-bucket-755933694771-ap-southeast-1-an
+      prefix: image-compression/artefact
+      region: ap-southeast-1
+      profile: expops

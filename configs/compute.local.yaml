@@ -1,0 +1,31 @@
+provider: local
+num_workers: 3
+deployment:
+  variables:
+    OPENBLAS_NUM_THREADS: '1'
+    OMP_NUM_THREADS: '1'
+options:
+  cleanup: on_success
+  startup_timeout_sec: 180
+  local_cluster_kwargs:
+    memory_limit: 0
+storage:
+  metadata:
+    type: sql
+    dialect: sqlite
+    connection:
+      database: .image-compression/metadata.db
+  mounts:
+    code:
+      type: local
+      source: ..
+      read_only: true
+    input:
+      type: local
+      source: ../data
+    cache:
+      type: local
+      source: ../.image-compression/cache
+    artefact:
+      type: local
+      source: ../.image-compression/artefact
