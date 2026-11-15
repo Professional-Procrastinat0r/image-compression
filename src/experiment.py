@@ -199,16 +199,14 @@ def compression_report(metrics, ctx):
         writer.writerows(rows)
     selected = {"kodim01", "kodim05", "kodim13", "kodim23"}
     encoded = {}
-    # All original encoded files become indexed, downloadable managed artefacts.
+    # Fetch the selected intermediates for comparison panels.
     for row in rows:
+        if row["image"] not in selected:
+            continue
         payload = ctx.fs.read_bytes(row["vfs_path"])
         if hashlib.sha256(payload).hexdigest() != row["sha256"]:
             raise ValueError("Published encoding checksum mismatch")
-        extension = "jpg" if row["codec"] == "JPEG" else "webp"
-        filename = f"{row['image']}_{row['codec'].lower()}_q{row['quality']}.{extension}"
-        (output / filename).write_bytes(payload)
-        if row["image"] in selected:
-            encoded[(row["image"], row["codec"], row["quality"])] = decode(payload)
+        encoded[(row["image"], row["codec"], row["quality"])] = decode(payload)
     for name in sorted(selected):
         reference = decode(ctx.fs.read_bytes(f"input/{name}.png"))
         for quality in (30, 60, 90):

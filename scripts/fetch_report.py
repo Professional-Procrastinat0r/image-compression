@@ -7,7 +7,7 @@ from expops.storage import FileRef, open_metadata_reader, read_managed_file
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("run_id")
-    parser.add_argument("--all", action="store_true", help="Include every encoded image and comparison")
+    parser.add_argument("--all", action="store_true", help="Include every comparison, chart and measurement file")
     args = parser.parse_args()
     output = Path(__file__).resolve().parents[1] / "output" / args.run_id
     selected = {"compression_overview.png", "codec_timings.png", "measurements.csv", "measurements.json",

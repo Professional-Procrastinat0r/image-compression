@@ -20,7 +20,7 @@ class LocalFiles:
 
     def path(self, address):
         alias, key = address.split("/", 1)
-        return {"code": ROOT, "artefact": self.artefacts}[alias] / key
+        return {"code": ROOT, "input": ROOT / "data", "artefact": self.artefacts}[alias] / key
 
     def read_text(self, address):
         return self.path(address).read_text(encoding="utf-8")
@@ -103,6 +103,37 @@ class StageHandoffs(unittest.TestCase):
         rows[-1]["image"] = rows[-2]["image"]
         with self.assertRaisesRegex(ValueError, "unique images"):
             summarize_quality(rows)
+
+    def test_report_publishes_comparisons_and_metrics_only(self):
+        # A complete report fixture protects the visible output contract.
+        import hashlib
+        metrics = {}
+        for codec in ("JPEG", "WEBP"):
+            for quality in (30, 60, 90):
+                group = []
+                for record in self.manifest:
+                    row = {"image": record["image"], "codec": codec, "quality": quality,
+                           "bytes": 100, "reference_png_bytes": record["bytes"],
+                           "bits_per_pixel": .5, "ssim": .9, "psnr_db": 30.,
+                           "encode_ms": 1., "decode_ms": 1., "size_reduction_pct": 90.,
+                           "encode_samples_ms": [1.]*5, "decode_samples_ms": [1.]*5}
+                    if record["image"] in {"kodim01", "kodim05", "kodim13", "kodim23"}:
+                        image = experiment.read_reference(self.ctx, record)
+                        payload = experiment.encode(image, codec, quality)
+                        address = f"artefact/{record['image']}_{codec}_{quality}"
+                        self.ctx.fs.write_bytes(address, payload)
+                        row.update(vfs_path=address, sha256=hashlib.sha256(payload).hexdigest())
+                    group.append(row)
+                metrics[f"{codec}_{quality}"] = {"results": group, "versions": {"fixture": True}}
+        output = Path(self.tmp.name) / "report"
+        experiment.compression_report(metrics, SimpleNamespace(output_dir=output, fs=self.ctx.fs))
+        files = list(output.iterdir())
+        self.assertEqual(len(files), 37)
+        self.assertEqual(len(list(output.glob("compare_*.png"))), 24)
+        self.assertEqual(len(list(output.glob("pixel_differences_*.png"))), 4)
+        self.assertFalse(any(p.suffix in {".jpg", ".jpeg", ".webp"} for p in files))
+        self.assertTrue((output / "measurements.csv").is_file())
+        self.assertTrue((output / "quality_summary.csv").is_file())
 
 
 if __name__ == "__main__":

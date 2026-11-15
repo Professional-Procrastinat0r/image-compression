@@ -52,9 +52,9 @@ Adapt account/QOS/queue and worker interpreter/base paths to the cluster. The co
 
 ## Tangible outputs
 
-The static report publishes all 144 compressed originals, 24 labelled before/after PNG panels, a size-quality-time overview, codec timing chart, CSV and JSON measurements. Panels show the reference alongside JPEG and WebP at each setting for images 01, 05, 13 and 23. Full-image panels scale to fit. Detail panels enlarge a fixed centre crop with nearest-neighbour scaling so interpolation does not hide codec artefacts.
+The static report publishes 24 labelled before/after PNG panels, a size-quality-time overview, codec timing chart, CSV and JSON measurements. Panels show the reference alongside JPEG and WebP at each setting for images 01, 05, 13 and 23. Full-image panels scale to fit. Detail panels enlarge a fixed centre crop with nearest-neighbour scaling so interpolation does not hide codec artefacts. Compressed files are retained as intermediate inputs for evaluation and comparison rendering.
 
-Additional quality outputs bring the report total to 181 artefacts:
+Additional quality outputs bring the report total to 37 artefacts:
 
 | Output | What it shows |
 | --- | --- |
@@ -96,3 +96,5 @@ On 15 November 2026, the 14-process workflow ran with three local CPU workers an
 The unchanged rerun `project-image-compression-20261115122640-0e8ff504` reused all 14 processes and completed in 19 seconds after environment preparation. Four focused stage-contract tests passed. The supplied Slurm configuration awaits execution on the target cluster.
 
 The expanded quality report was verified in run `project-image-compression-20261115151642-0369f345` on 15 November 2026. All 14 processes completed in 227 seconds after environment preparation with 181 indexed artefacts. All 144 image hashes and PSNR/SSIM scores matched the earlier workflow. Percentage savings and all six configuration summaries were independently checked, five focused tests passed, and the new chart/difference-map downloads were checksum-verified through the running ExpOps server. The chart layouts were visually inspected.
+
+On 16 November 2026, run `project-image-compression-20261115164322-308a3565` verified the comparison-focused report. All 14 processes completed in 167 seconds after preparation, publishing 37 outputs with all 144 measurement rows. Six focused tests passed, including a full report-output check. The completed Slurm run's gallery was also updated to show these output categories. The revised reporting source was uploaded to the Slurm deployment.
