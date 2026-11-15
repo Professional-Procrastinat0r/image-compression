@@ -11,6 +11,7 @@ from unittest.mock import patch
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 import experiment
+from quality_reports import summarize_quality
 
 
 class LocalFiles:
@@ -59,6 +60,8 @@ class StageHandoffs(unittest.TestCase):
                 self.assertGreater(row["ssim"], 0)
                 self.assertLessEqual(row["ssim"], 1)
                 self.assertNotIn("reference", row)
+                self.assertAlmostEqual(row["size_reduction_pct"],
+                                       100 * (1 - row["bytes"] / row["reference_png_bytes"]))
 
     def test_corrupt_intermediate_is_rejected(self):
         batch = experiment.compress_images(self.manifest[:1], "JPEG", 30, repeats=2, context=self.ctx)
@@ -86,6 +89,20 @@ class StageHandoffs(unittest.TestCase):
                 self.assertEqual(predecessors[f"encode_{suffix}"], {"prepare_dataset"})
                 self.assertEqual(predecessors[f"evaluate_{suffix}"], {f"encode_{suffix}"})
         self.assertEqual(len(predecessors["compression_report"]), 6)
+
+    def test_quality_summary_weights_images_equally(self):
+        rows = [{"image": f"image{i}", "codec": codec, "quality": quality,
+                 "ssim": .5 + .01*i, "psnr_db": 20+i, "bits_per_pixel": 1+i,
+                 "size_reduction_pct": 50+i}
+                for codec in ("JPEG", "WEBP") for quality in (30, 60, 90) for i in range(24)]
+        summary = summarize_quality(rows)
+        self.assertEqual(len(summary), 6)
+        self.assertAlmostEqual(summary[0]["mean_ssim"], .615)
+        self.assertAlmostEqual(summary[0]["mean_size_reduction_pct"], 61.5)
+        self.assertAlmostEqual(summary[0]["std_psnr_db"], 7.0710678118654755)
+        rows[-1]["image"] = rows[-2]["image"]
+        with self.assertRaisesRegex(ValueError, "unique images"):
+            summarize_quality(rows)
 
 
 if __name__ == "__main__":

@@ -19,6 +19,7 @@ from PIL import Image, ImageDraw, ImageFont, features
 from skimage.metrics import peak_signal_noise_ratio, structural_similarity
 from expops.core import process, log_metric
 from expops.reporting import chart
+from quality_reports import render_difference_map, render_quality_reports
 
 
 def encode(image, codec, quality):
@@ -134,9 +135,10 @@ def evaluate_images(compression_batch, context=None):
             "psnr_db": float(peak_signal_noise_ratio(source_array, decoded_array, data_range=255)),
             "ssim": float(structural_similarity(source_array, decoded_array, channel_axis=2, data_range=255)),
             "decode_ms": statistics.median(decode_ms), "decode_samples_ms": decode_ms,
+            "size_reduction_pct": 100 * (1 - len(payload) / encoding["reference_png_bytes"]),
         })
         rows.append(row)
-        for metric in ("bytes", "bits_per_pixel", "psnr_db", "ssim", "encode_ms", "decode_ms"):
+        for metric in ("bytes", "bits_per_pixel", "psnr_db", "ssim", "encode_ms", "decode_ms", "size_reduction_pct"):
             log_metric(metric, row[metric], step=index)
         log_metric("images_evaluated", index, step=index)
     log_metric("results", rows)
@@ -215,6 +217,8 @@ def compression_report(metrics, ctx):
             labels = ["Reference PNG\n" + f"{len(ctx.fs.read_bytes(f'input/{name}.png'))/1024:.1f} KiB"]
             labels += [f"{r['codec']} setting {quality}\n{r['bytes']/1024:.1f} KiB | SSIM {r['ssim']:.3f}" for r in pair]
             variants = [encoded[(name, r["codec"], quality)] for r in pair]
+            if quality == 30:
+                render_difference_map(reference, variants, name, output / f"pixel_differences_{name}.png")
             for crop in (False, True):
                 suffix = "detail" if crop else "full"
                 comparison_panel(reference, variants, labels,
@@ -235,6 +239,7 @@ def compression_report(metrics, ctx):
     fig.suptitle("Kodak 24 images - size, reconstruction quality and encoding cost")
     fig.savefig(output / "compression_overview.png", dpi=150)
     plt.close(fig)
+    render_quality_reports(rows, output)
     fig, ax = plt.subplots(figsize=(9,4), constrained_layout=True)
     labels, enc, dec = [], [], []
     for codec in ("JPEG", "WEBP"):

@@ -11,7 +11,9 @@ def main():
     args = parser.parse_args()
     output = Path(__file__).resolve().parents[1] / "output" / args.run_id
     selected = {"compression_overview.png", "codec_timings.png", "measurements.csv", "measurements.json",
-                "compare_kodim05_q30_full.png", "compare_kodim05_q30_detail.png"}
+                "compare_kodim05_q30_full.png", "compare_kodim05_q30_detail.png",
+                "image_quality_comparison.png", "per_image_ssim.png", "quality_distribution.png",
+                "quality_vs_storage_savings.png", "quality_summary.csv", "pixel_differences_kodim05.png"}
     with open_metadata_reader("image-compression", {"type": "firestore", "gcp_project": "exp-ops"}) as reader:
         status = reader.get_run_status(args.run_id)
         if status != "completed":

@@ -54,6 +54,19 @@ Adapt account/QOS/queue and worker interpreter/base paths to the cluster. The co
 
 The static report publishes all 144 compressed originals, 24 labelled before/after PNG panels, a size-quality-time overview, codec timing chart, CSV and JSON measurements. Panels show the reference alongside JPEG and WebP at each setting for images 01, 05, 13 and 23. Full-image panels scale to fit. Detail panels enlarge a fixed centre crop with nearest-neighbour scaling so interpolation does not hide codec artefacts.
 
+Additional quality outputs bring the report total to 181 artefacts:
+
+| Output | What it shows |
+| --- | --- |
+| `image_quality_comparison.png` | Mean SSIM and PSNR versus encoder setting, with +/- one sample standard deviation across the 24 photographs |
+| `per_image_ssim.png` | All 144 SSIM values in a labelled image-by-configuration heatmap |
+| `quality_distribution.png` | Per-configuration SSIM distributions across the photographs, with medians, quartiles, means and outliers |
+| `quality_vs_storage_savings.png` | Mean SSIM versus mean percentage file-size reduction from the reference PNG |
+| `pixel_differences_kodim*.png` | Reference and JPEG/WebP Q30 mean absolute RGB pixel-error maps for the four selected photographs |
+| `quality_summary.csv` | Configuration means and sample standard deviations for SSIM, PSNR, bits per pixel and percentage size reduction |
+
+Difference maps use the same colour scale for JPEG and WebP, saturating at an absolute RGB error of 64 out of 255. Numerical differences show altered pixels. Before/after samples show the resulting appearance. Standard deviations describe variation across photographs. Percentage savings use each photograph's reference PNG byte size as the baseline and weight all 24 images equally. Codec-specific settings and the size-quality curves should be interpreted together.
+
 The report verifies S3 output checksums before rendering and publishing its managed outputs. Intermediate encodings are content-addressed under the artefact mount and reused by reporting. The platform retains benchmark outputs in its S3 process cache and replays their metrics on cached runs.
 
 To retrieve an overview, sample comparison panels and measurements independently of execution, use the run ID printed by ExpOps:
@@ -64,7 +77,7 @@ To retrieve an overview, sample comparison panels and measurements independently
 
 Add `--all` to retrieve all published artefacts. This uses the read-only metadata API and verifies each published file's size and checksum. Downloads appear under `output/<run-id>/`.
 
-Numerical metrics are SSIM and PSNR on RGB arrays with a fixed range of 255, file bytes, bits per pixel, and median encode/decode milliseconds. Quality numbers belong to each encoder. Compare the measured size-quality curves and visual samples. SSIM is an objective similarity metric, and the display panels provide qualitative examples of visual quality. Compression relative to the reference PNG measures the supplied file representation.
+Numerical metrics are SSIM and PSNR on RGB arrays with a fixed range of 255, file bytes, bits per pixel, percentage size reduction from the reference PNG, and median encode/decode milliseconds. Quality numbers belong to each encoder. Compare the measured size-quality curves and visual samples. SSIM is an objective similarity metric, and the display panels provide qualitative examples of visual quality. Compression relative to the reference PNG measures the supplied file representation.
 
 Preparation logs image-validation progress. Compression processes log image counts, sizes and encoding timings. Evaluation processes log image counts, decoding timings and reconstruction metrics. Connect the independent Run Monitor to the Firestore metadata and the configured mounts. A repeated identical command exercises cache reuse. Actual queue, startup and transfer time depend on the execution environment.
 
@@ -81,3 +94,5 @@ Dependencies and encoder versions are recorded with each report. Local dataset c
 On 15 November 2026, the 14-process workflow ran with three local CPU workers and live Firestore, GCS and S3 storage. Run `project-image-compression-20261115122251-8b66c47a` completed all 14 processes and published 172 indexed artefacts. Runtime after environment preparation was 227 seconds, including input identity checks, computation and output publication. Evaluation began while other branches were still encoding. All 144 encoded-file hashes, sizes, PSNR values and SSIM values matched the earlier seven-process implementation. Each row retained five encoding and five decoding timing samples. The comparison panel was visually inspected after checksum-verified retrieval.
 
 The unchanged rerun `project-image-compression-20261115122640-0e8ff504` reused all 14 processes and completed in 19 seconds after environment preparation. Four focused stage-contract tests passed. The supplied Slurm configuration awaits execution on the target cluster.
+
+The expanded quality report was verified in run `project-image-compression-20261115151642-0369f345` on 15 November 2026. All 14 processes completed in 227 seconds after environment preparation with 181 indexed artefacts. All 144 image hashes and PSNR/SSIM scores matched the earlier workflow. Percentage savings and all six configuration summaries were independently checked, five focused tests passed, and the new chart/difference-map downloads were checksum-verified through the running ExpOps server. The chart layouts were visually inspected.
