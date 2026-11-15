@@ -1,6 +1,18 @@
 # Image compression with ExpOps
 
-Compare JPEG and WebP on all 24 Kodak reference images. Six parallel configuration branches use encoder quality settings 30, 60 and 90, followed by a reporting process. Every image has a warm-up and five measured encoding/decoding repetitions. Timings use memory buffers and exclude source downloads, quality scoring and output publication.
+Compare JPEG and WebP on all 24 Kodak reference images. A 14-process workflow prepares the reference manifest, runs six compression branches, evaluates each branch in a separate downstream process, and generates the final report. Encoder quality settings are 30, 60 and 90. Every image has a warm-up and five measured encoding/decoding repetitions. Timings use memory buffers and exclude source downloads, quality scoring and output publication.
+
+```mermaid
+flowchart LR
+    P[prepare_dataset] --> J30[encode_jpeg_q30] --> EJ30[evaluate_jpeg_q30] --> R[compression_report]
+    P --> J60[encode_jpeg_q60] --> EJ60[evaluate_jpeg_q60] --> R
+    P --> J90[encode_jpeg_q90] --> EJ90[evaluate_jpeg_q90] --> R
+    P --> W30[encode_webp_q30] --> EW30[evaluate_webp_q30] --> R
+    P --> W60[encode_webp_q60] --> EW60[evaluate_webp_q60] --> R
+    P --> W90[encode_webp_q90] --> EW90[evaluate_webp_q90] --> R
+```
+
+Preparation verifies all 24 images against the pinned dataset hashes and passes their dimensions, sizes and identities to every encoder. Each encoder returns a manifest of published S3 image addresses, checksums, encoding timings and library versions. Its evaluator reads those published files through the VFS, checks size/checksum, measures decoding, and compares against the identified reference image. Reports subscribe to the six evaluation processes. Branch evaluations can start as soon as their own encoder finishes.
 
 ## Storage and execution
 
@@ -54,7 +66,9 @@ Add `--all` to retrieve all published artefacts. This uses the read-only metadat
 
 Numerical metrics are SSIM and PSNR on RGB arrays with a fixed range of 255, file bytes, bits per pixel, and median encode/decode milliseconds. Quality numbers belong to each encoder. Compare the measured size-quality curves and visual samples. SSIM is an objective similarity metric, and the display panels provide qualitative examples of visual quality. Compression relative to the reference PNG measures the supplied file representation.
 
-Per-image progress, timing and reconstruction metrics are logged during each branch. Connect the independent Run Monitor to the Firestore metadata and the configured mounts. A repeated identical command exercises cache reuse. Actual queue, startup and transfer time depend on the execution environment.
+Preparation logs image-validation progress. Compression processes log image counts, sizes and encoding timings. Evaluation processes log image counts, decoding timings and reconstruction metrics. Connect the independent Run Monitor to the Firestore metadata and the configured mounts. A repeated identical command exercises cache reuse. Actual queue, startup and transfer time depend on the execution environment.
+
+After preparing the local dataset, run the stage-contract tests with `.venv/Scripts/python.exe -m unittest discover -s tests -v`. These check the 14-process topology, JPEG/WebP file handoffs, intermediate corruption detection and reference identity verification.
 
 ## Dataset credit
 
@@ -64,6 +78,6 @@ Dependencies and encoder versions are recorded with each report. Local dataset c
 
 ## Verified execution
 
-On 15 November 2026, the complete experiment ran with three local CPU workers and live Firestore, GCS and S3 storage. Run `project-image-compression-20261115112459-e6bf2803` completed all seven processes and published 172 indexed artefacts. Runtime after environment preparation was 202 seconds, including input identity checks, computation and output publication. All 144 measurement rows and their five encode/decode samples were checked. The enlarged comparison panels were visually inspected after downloading through checksum-verifying published references.
+On 15 November 2026, the 14-process workflow ran with three local CPU workers and live Firestore, GCS and S3 storage. Run `project-image-compression-20261115122251-8b66c47a` completed all 14 processes and published 172 indexed artefacts. Runtime after environment preparation was 227 seconds, including input identity checks, computation and output publication. Evaluation began while other branches were still encoding. All 144 encoded-file hashes, sizes, PSNR values and SSIM values matched the earlier seven-process implementation. Each row retained five encoding and five decoding timing samples. The comparison panel was visually inspected after checksum-verified retrieval.
 
-An earlier unchanged run reused all seven processes, retained all 172 artefacts, and completed in 16 seconds after environment preparation. The supplied Slurm configuration awaits execution on the target cluster.
+The unchanged rerun `project-image-compression-20261115122640-0e8ff504` reused all 14 processes and completed in 19 seconds after environment preparation. Four focused stage-contract tests passed. The supplied Slurm configuration awaits execution on the target cluster.

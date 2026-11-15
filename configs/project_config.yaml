@@ -1,7 +1,7 @@
 metadata:
   name: image-compression
   description: Kodak JPEG and WebP size-quality-time experiment
-  version: 0.1.0
+  version: 0.2.0
 scripts:
   main: code/src/experiment.py
 environment:
@@ -85,69 +85,114 @@ data:
       mode: stream
 experiment:
   pipeline:
-    process_adjlist: 'jpeg_q30 compression_report
+    process_adjlist: 'prepare_dataset encode_jpeg_q30
 
-      jpeg_q60 compression_report
+      encode_jpeg_q30 evaluate_jpeg_q30
 
-      jpeg_q90 compression_report
+      evaluate_jpeg_q30 compression_report
 
-      webp_q30 compression_report
+      prepare_dataset encode_jpeg_q60
 
-      webp_q60 compression_report
+      encode_jpeg_q60 evaluate_jpeg_q60
 
-      webp_q90 compression_report'
+      evaluate_jpeg_q60 compression_report
+
+      prepare_dataset encode_jpeg_q90
+
+      encode_jpeg_q90 evaluate_jpeg_q90
+
+      evaluate_jpeg_q90 compression_report
+
+      prepare_dataset encode_webp_q30
+
+      encode_webp_q30 evaluate_webp_q30
+
+      evaluate_webp_q30 compression_report
+
+      prepare_dataset encode_webp_q60
+
+      encode_webp_q60 evaluate_webp_q60
+
+      evaluate_webp_q60 compression_report
+
+      prepare_dataset encode_webp_q90
+
+      encode_webp_q90 evaluate_webp_q90
+
+      evaluate_webp_q90 compression_report'
     processes:
-    - name: jpeg_q30
-      code: main.benchmark
+    - name: prepare_dataset
+      code: main.prepare_dataset
+      environment: compression-env
+    - name: encode_jpeg_q30
+      code: main.compress_images
       environment: compression-env
       parameters:
         codec: JPEG
         quality: 30
         repeats: 5
-    - name: jpeg_q60
-      code: main.benchmark
+    - name: evaluate_jpeg_q30
+      code: main.evaluate_images
+      environment: compression-env
+    - name: encode_jpeg_q60
+      code: main.compress_images
       environment: compression-env
       parameters:
         codec: JPEG
         quality: 60
         repeats: 5
-    - name: jpeg_q90
-      code: main.benchmark
+    - name: evaluate_jpeg_q60
+      code: main.evaluate_images
+      environment: compression-env
+    - name: encode_jpeg_q90
+      code: main.compress_images
       environment: compression-env
       parameters:
         codec: JPEG
         quality: 90
         repeats: 5
-    - name: webp_q30
-      code: main.benchmark
+    - name: evaluate_jpeg_q90
+      code: main.evaluate_images
+      environment: compression-env
+    - name: encode_webp_q30
+      code: main.compress_images
       environment: compression-env
       parameters:
         codec: WEBP
         quality: 30
         repeats: 5
-    - name: webp_q60
-      code: main.benchmark
+    - name: evaluate_webp_q30
+      code: main.evaluate_images
+      environment: compression-env
+    - name: encode_webp_q60
+      code: main.compress_images
       environment: compression-env
       parameters:
         codec: WEBP
         quality: 60
         repeats: 5
-    - name: webp_q90
-      code: main.benchmark
+    - name: evaluate_webp_q60
+      code: main.evaluate_images
+      environment: compression-env
+    - name: encode_webp_q90
+      code: main.compress_images
       environment: compression-env
       parameters:
         codec: WEBP
         quality: 90
         repeats: 5
+    - name: evaluate_webp_q90
+      code: main.evaluate_images
+      environment: compression-env
     - name: compression_report
       code: main.compression_report
       environment: compression-env
       type: chart
       chart_type: static
       probe_paths:
-        jpeg_q30: //process[@name='jpeg_q30']
-        jpeg_q60: //process[@name='jpeg_q60']
-        jpeg_q90: //process[@name='jpeg_q90']
-        webp_q30: //process[@name='webp_q30']
-        webp_q60: //process[@name='webp_q60']
-        webp_q90: //process[@name='webp_q90']
+        evaluate_jpeg_q30: //process[@name='evaluate_jpeg_q30']
+        evaluate_jpeg_q60: //process[@name='evaluate_jpeg_q60']
+        evaluate_jpeg_q90: //process[@name='evaluate_jpeg_q90']
+        evaluate_webp_q30: //process[@name='evaluate_webp_q30']
+        evaluate_webp_q60: //process[@name='evaluate_webp_q60']
+        evaluate_webp_q90: //process[@name='evaluate_webp_q90']
