@@ -48,7 +48,7 @@ python -m pip install -e '../expops-platform[gcp,aws,slurm]' -r requirements.txt
 expops run configs/compute.slurm.yaml
 ```
 
-Adapt account/QOS/queue and worker interpreter/base paths to the cluster. The code mount points at this checkout and uses ExpOps source preparation. The Slurm profile requires provider access from the worker nodes and should be rehearsed on the target cluster.
+Adapt account/QOS/queue and worker interpreter/base paths to the cluster. The Slurm code mount retrieves `Professional-Procrastinat0r/image-compression` from GitHub's default branch. ExpOps resolves a commit for source preparation and delivers the selected source to workers. For this private repository, the driver needs noninteractive Git authentication. Credentials belong in the driver's Git/SSH configuration. The `compute.cloud.yaml` and `compute.local.yaml` profiles use the local checkout for development. The Slurm profile also requires provider access from the worker nodes.
 
 ## Tangible outputs
 

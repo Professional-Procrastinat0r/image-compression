@@ -21,9 +21,8 @@ storage:
     gcp_project: exp-ops
   mounts:
     code:
-      type: local
-      source: ..
-      read_only: true
+      type: git
+      url: https://github.com/Professional-Procrastinat0r/image-compression
     input:
       type: gcs
       bucket: exp-ops-image-compression-inputs
